@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>自定义Bingo游戏</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .cell {
+            border: 2px solid #333;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #fff;
+        }
+        .cell.correct {
+            background: #90EE90 !important;
+        }
+        #qrcode {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bingo游戏</h1>
+    <button onclick="generateQRCode()">生成游戏二维码</button>
+    <div id="qrcode"></div>
+    <div class="bingo-grid" id="bingoGrid"></div>
+
+    <script>
+        // 预定义题目和答案（可修改）
+        const questions = [
+            { question: "2+2", answer: "4" },
+            { question: "中国的首都", answer: "北京" },
+            { question: "HTML的全称", answer: "超文本标记语言" },
+            // 添加更多题目...
+        ];
+
+        let markedCells = [];
+        let bingoGrid = [];
+
+        // 初始化Bingo网格
+        function initBingoGrid() {
+            const grid = document.getElementById('bingoGrid');
+            grid.innerHTML = '';
+            bingoGrid = [];
+
+            // 随机选择25个题目（简单示例）
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                const randomQ = questions[i % questions.length]; // 实际应随机打乱
+                cell.className = 'cell';
+                cell.innerHTML = `
+                    <div>${randomQ.question}</div>
+                    <input type="text" placeholder="输入答案">
+                    <button onclick="checkAnswer(${i}, this)">提交</button>
+                `;
+                grid.appendChild(cell);
+                bingoGrid.push(randomQ);
+            }
+        }
+
+        // 验证答案
+        function checkAnswer(index, button) {
+            const input = button.parentElement.querySelector('input');
+            const correctAnswer = bingoGrid[index].answer;
+            
+            if (input.value.trim() === correctAnswer) {
+                button.parentElement.classList.add('correct');
+                markedCells.push(index);
+                checkWin();
+            } else {
+                alert("答案错误！");
+            }
+        }
+
+        // 检查是否连成一线
+        function checkWin() {
+            const winConditions = [
+                [0,1,2,3,4], [5,6,7,8,9], [10,11,12,13,14], // 横向
+                [0,5,10,15,20], [1,6,11,16,21], [2,7,12,17,22], // 纵向
+                [0,6,12,18,24], [4,8,12,16,20] // 对角线
+            ];
+
+            for (let condition of winConditions) {
+                if (condition.every(num => markedCells.includes(num))) {
+                    alert("BINGO! 你赢了！");
+                    return;
+                }
+            }
+        }
+
+        // 生成二维码
+        function generateQRCode() {
+            const qrDiv = document.getElementById('qrcode');
+            qrDiv.innerHTML = '';
+            
+            const qr = qrcode(0, 'M');
+            qr.addData(window.location.href);
+            qr.make();
+            qrDiv.innerHTML = qr.createSvgTag({ cellSize: 8 });
+        }
+
+        // 初始化游戏
+        initBingoGrid();
+    </script>
+</body>
+</html>
